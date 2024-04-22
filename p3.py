@@ -8,11 +8,20 @@ from scipy import ndimage, signal
 
 ### TODO 1: Read an Image and convert it into a floating point array with values between 0 and 1. You can assume a color image
 def imread(filename):
-    pass
+    image = Image.open(filename)
+    image_array = np.array(image)
+    image_array = image_array / 255
+    print(image_array)
+    return image_array
+
 
 ### TODO 2: Create a gaussian filter of size k x k and with standard deviation sigma
 def gaussian_filter(k, sigma):
-    pass
+    truncate = (((k - 1)/2) - 0.5)/sigma
+    init_array = np.zeros((k,k))
+    index = int(k/2)
+    init_array[index, index] = 1
+    return ndimage.gaussian_filter(init_array, sigma = sigma, truncate = truncate)
 
 ### TODO 3: Compute the image gradient. 
 ### First convert the image to grayscale by using the formula:
@@ -21,7 +30,18 @@ def gaussian_filter(k, sigma):
 ### Convolve with [0.5, 0, -0.5] to get the X derivative on each channel and convolve with [[0.5],[0],[-0.5]] to get the Y derivative on each channel. (use scipy.signal.convolve) 
 ### Return the gradient magnitude and the gradient orientation (use arctan2)
 def gradient(img):
-    pass
+    grayscale_image = img[:,:,0]*0.2125 + img[:,:,1]*0.7154 + img[:,:,2]*0.0721
+    conv_1 = signal.convolve(grayscale_image, gaussian_filter(5, 1))
+    conv_2 = signal.convolve(conv_1, [[0.5, 0, -0.5]])
+    conv_3 = signal.convolve(conv_2, [[0.5],[0],[-0.5]])
+
+    i_xp = ndimage.sobel(conv_3, axis=1, mode='nearest')
+    i_yp = ndimage.sobel(conv_3, axis=0, mode='nearest')
+
+    orientationImage = np.degrees(np.arctan2(i_yp, i_xp))
+
+    return np.sqrt(i_xp * i_yp), orientationImage
+
 
 
 
