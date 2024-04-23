@@ -31,16 +31,14 @@ def gaussian_filter(k, sigma):
 ### Return the gradient magnitude and the gradient orientation (use arctan2)
 def gradient(img):
     grayscale_image = img[:,:,0]*0.2125 + img[:,:,1]*0.7154 + img[:,:,2]*0.0721
+    print(grayscale_image)
     conv_1 = signal.convolve(grayscale_image, gaussian_filter(5, 1))
-    conv_2 = signal.convolve(conv_1, [[0.5, 0, -0.5]])
-    conv_3 = signal.convolve(conv_2, [[0.5],[0],[-0.5]])
+    x_deriv = signal.convolve(conv_1, [[0.5, 0, -0.5]], mode = "same")
+    y_deriv = signal.convolve(conv_1, [[0.5],[0],[-0.5]], mode ="same")
 
-    i_xp = ndimage.sobel(conv_3, axis=1, mode='nearest')
-    i_yp = ndimage.sobel(conv_3, axis=0, mode='nearest')
+    orientationImage = np.arctan2(x_deriv, y_deriv)
 
-    orientationImage = np.degrees(np.arctan2(i_yp, i_xp))
-
-    return np.sqrt(i_xp * i_yp), orientationImage
+    return np.sqrt(x_deriv**2 + y_deriv**2), orientationImage
 
 
 
