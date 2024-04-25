@@ -48,15 +48,12 @@ def gradient(img):
 ### The input x and y are arrays representing the x and y coordinates of each pixel
 ### Return a boolean array that indicates True for pixels whose distance is less than the threshold
 def check_distance_from_line(x, y, theta, c, thresh):
-    d = np.zeros(len(x))
     d = np.abs(x * np.cos(theta) + y * np.sin(theta) + c)
-
+    to_return = np.full(len(x), False)
     for i in range(len(x)):
         if d[i] < thresh:
-            d[i] = True
-        else:
-            d[i] = False
-    return d
+            to_return[i] = True
+    return to_return
 
 
 ### TODO 5: Write a function to draw a set of lines on the image. The `lines` input is a list of (theta, c) pairs. 
@@ -106,23 +103,41 @@ def hough_voting(gradmag, gradori, thetas, cs, thresh1, thresh2, thresh3):
     ys = np.repeat(ys, x_len)
     xs = np.array(xs)
 
+    flat_mag = gradmag.flatten()
+    flat_ori = gradori.flatten()
+
     print(len(thetas))
     print(len(cs))
+
+    mask1 = flat_mag < thresh1
+    remaining_x = xs[mask1]
+    remaining_y = ys[mask1]
+    
+    flat_ori = flat_ori[mask1]
 
     for i in range(len(thetas)):
         theta = thetas[i]
         print("i" + str(i))
         for j in range(len(cs)):
-            
             #print("j" + str(j))
             c = cs[j]
-            mask1 = gradmag < thresh1
-            pixel_val = check_distance_from_line(xs, ys, theta, c, thresh2)
-            mask2 = np.reshape(pixel_val, (x_len, y_len))
-            diff = np.abs(gradori - theta)
+            
+            mask2 = check_distance_from_line(remaining_x, remaining_y, theta, c, thresh2)
+            if not max(mask2):
+                continue
+            
+            
+            #remaining_x = xs[mask1]
+            #remaining_y = ys[mask1]
+            #mask2 = check_distance_from_line(remaining_x, remaining_y, theta, c, thresh2)
+            #if max(mask2) == 0:
+            #    continue
+            #mask2 = np.reshape(pixel_val, (x_len, y_len))
+            #mask1 = gradmag[mask2] < thresh1
+            diff = np.abs(flat_ori[mask2] - theta)
             mask3 = diff < thresh3
 
-            hough_thing[i,j] = np.sum(mask1 * mask2 * mask3)
+            hough_thing[i,j] = np.sum(mask3)
 
     return hough_thing
     
