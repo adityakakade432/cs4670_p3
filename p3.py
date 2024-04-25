@@ -11,7 +11,6 @@ def imread(filename):
     image = Image.open(filename)
     image_array = np.array(image)
     image_array = image_array / 255
-    print(image_array)
     return image_array
 
 
@@ -31,14 +30,13 @@ def gaussian_filter(k, sigma):
 ### Return the gradient magnitude and the gradient orientation (use arctan2)
 def gradient(img):
     grayscale_image = img[:,:,0]*0.2125 + img[:,:,1]*0.7154 + img[:,:,2]*0.0721
-    print(grayscale_image)
-    conv_1 = signal.convolve(grayscale_image, gaussian_filter(5, 1))
+    conv_1 = signal.convolve(grayscale_image, gaussian_filter(5, 1), mode = "same")
     x_deriv = signal.convolve(conv_1, [[0.5, 0, -0.5]], mode = "same")
-    y_deriv = signal.convolve(conv_1, [[0.5],[0],[-0.5]], mode ="same")
+    y_deriv = signal.convolve(conv_1, [[0.5],[0],[-0.5]], mode = "same")
 
-    orientationImage = np.arctan2(x_deriv, y_deriv)
+    orientationImage = np.arctan2(y_deriv, x_deriv)
 
-    return np.sqrt(x_deriv**2 + y_deriv**2), orientationImage
+    return np.sqrt(np.square(x_deriv) + np.square(y_deriv)), orientationImage
 
 
 
@@ -50,22 +48,83 @@ def gradient(img):
 ### The input x and y are arrays representing the x and y coordinates of each pixel
 ### Return a boolean array that indicates True for pixels whose distance is less than the threshold
 def check_distance_from_line(x, y, theta, c, thresh):
-    pass
+    d = np.zeros(len(x))
+    d = np.abs(x * np.cos(theta) + y * np.sin(theta) + c)
+
+    for i in range(len(x)):
+        if d[i] < thresh:
+            d[i] = True
+        else:
+            d[i] = False
+    return d
 
 
-### TODO 5: Write a function to draw a set of lines on the image. The `lines` input is a list of (theta, c) pairs. Each line must appear as red on the final image
+### TODO 5: Write a function to draw a set of lines on the image. The `lines` input is a list of (theta, c) pairs. 
+### Each line must appear as red on the final image
 ### where every pixel which is less than thresh units away from the line should be colored red
 def draw_lines(img, lines, thresh):
-    pass
+    img_copy = np.copy(img)
+    x_len, y_len, _ = img.shape
+    xs = list(range(x_len))
+    ys = np.arange(y_len)
+
+    xs = xs * y_len
+    ys = np.repeat(ys, x_len)
+    xs = np.array(xs)
+
+    pixels = zip(xs, ys)
+    pixels = list(pixels)
+
+    for (theta, c) in lines:
+        pixel_val = check_distance_from_line(xs, ys, theta, c, thresh)
+        pixel_val = np.reshape(pixel_val, (x_len, y_len))
+
+        for x in range(x_len):
+            for y in range(y_len):
+                if pixel_val[x, y]:
+                    img_copy[x, y, 0] = 1
+                    img_copy[x, y, 1] = 0
+                    img_copy[x, y, 2] = 0
+    return img_copy
+
  
 
-### TODO 6: Do Hough voting. You get as input the gradient magnitude and the gradient orientation, as well as a set of possible theta values and a set of possible c
-### values. If there are T entries in thetas and C entries in cs, the output should be a T x C array. Each pixel in the image should vote for (theta, c) if:
+### TODO 6: Do Hough voting. You get as input the gradient magnitude and the 
+### gradient orientation, as well as a set of possible theta values and a set of possible c
+### values. If there are T entries in thetas and C entries in cs, the output should be a T x C array. 
+### Each pixel in the image should vote for (theta, c) if:
 ### (a) Its gradient magnitude is greater than thresh1
 ### (b) Its distance from the (theta, c) line is less than thresh2, and
 ### (c) The difference between theta and the pixel's gradient orientation is less than thresh3
 def hough_voting(gradmag, gradori, thetas, cs, thresh1, thresh2, thresh3):
-    pass
+    hough_thing = np.zeros((len(thetas), len(cs)))
+    x_len, y_len = gradmag.shape
+    xs = list(range(x_len))
+    ys = np.arange(y_len)
+
+    xs = xs * y_len
+    ys = np.repeat(ys, x_len)
+    xs = np.array(xs)
+
+    print(len(thetas))
+    print(len(cs))
+
+    for i in range(len(thetas)):
+        theta = thetas[i]
+        print("i" + str(i))
+        for j in range(len(cs)):
+            
+            #print("j" + str(j))
+            c = cs[j]
+            mask1 = gradmag < thresh1
+            pixel_val = check_distance_from_line(xs, ys, theta, c, thresh2)
+            mask2 = np.reshape(pixel_val, (x_len, y_len))
+            diff = np.abs(gradori - theta)
+            mask3 = diff < thresh3
+
+            hough_thing[i,j] = np.sum(mask1 * mask2 * mask3)
+
+    return hough_thing
     
 
 ### TODO 7: Find local maxima in the array of votes. A (theta, c) pair counts as a local maxima if (a) its votes are greater than thresh, and 
