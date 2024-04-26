@@ -131,15 +131,32 @@ def localmax(votes, thetas, cs, thresh,nbhd):
     theta_len, cs_len = votes.shape
     print(votes.shape)
     print(nbhd)
-    max_filter = ndimage.filters.maximum_filter(votes, size=(nbhd, nbhd), mode='constant', cval=0)
-    to_return = set()
+    print(thresh)
+    idx = list(zip(*np.where(votes > 100)))
+    print(len(idx) < 20)
+    max_filter = ndimage.maximum_filter(votes, size=(nbhd, nbhd), mode='nearest')
+    #max_filter = ndimage.maximum_position(votes, labels=np.ones((nbhd,nbhd)))
+
+    print(len(max_filter > 0))
+    to_return = []
     for theta_index in range(theta_len):
         for c_index in range(cs_len):
-            val = max_filter[theta_index, c_index]
+            val = votes[theta_index, c_index]
+            if val != max_filter[theta_index, c_index]:
+                continue
             if val > thresh:
-                to_return.add((thetas[theta_index], cs[c_index]))
+                print(val)
+                #print(theta_index, c_index)
+                to_return.append((thetas[theta_index], cs[c_index]))
+    """
+    for x, y in max_filter:
+        val = votes[x, y]
+        if val > thresh:
+            to_return.append((x, y))
+    """
     print(len(to_return))
-    return list(to_return)
+    print(to_return)
+    return to_return
     
 
 
