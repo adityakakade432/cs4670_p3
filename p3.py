@@ -128,13 +128,18 @@ def hough_voting(gradmag, gradori, thetas, cs, thresh1, thresh2, thresh3):
 ### (b) its value is the maximum in a (nbhd x nbhd) neighborhood in the votes array.
 ### Return a list of (theta, c) pairs
 def localmax(votes, thetas, cs, thresh,nbhd):
-     height, width = votes.shape
-        max_filter = ndimage.filters.maximum_filter(votes, size=(nbhd,nbhd), mode='nearest')
-        for y in range(height):
-            for x in range(width):
-                destImage[y, x] = True if harrisImage[y, x] == max_filter[y, x] else False
-
-    return local_maxima
+    theta_len, cs_len = votes.shape
+    print(votes.shape)
+    print(nbhd)
+    max_filter = ndimage.filters.maximum_filter(votes, size=(nbhd, nbhd), mode='constant', cval=0)
+    to_return = set()
+    for theta_index in range(theta_len):
+        for c_index in range(cs_len):
+            val = max_filter[theta_index, c_index]
+            if val > thresh:
+                to_return.add((thetas[theta_index], cs[c_index]))
+    print(len(to_return))
+    return list(to_return)
     
 
 
