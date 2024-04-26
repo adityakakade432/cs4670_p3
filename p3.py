@@ -50,13 +50,13 @@ def gradient(img):
 def check_distance_from_line(x, y, theta, c, thresh):
     d = np.zeros(len(x))
     d = np.abs(x * np.cos(theta) + y * np.sin(theta) + c)
-
+    to_return = np.full(len(x), False)
     for i in range(len(x)):
         if d[i] < thresh:
-            d[i] = True
+            to_return[i] = True
         else:
-            d[i] = False
-    return d
+            to_return[i] = False
+    return to_return
 
 
 ### TODO 5: Write a function to draw a set of lines on the image. The `lines` input is a list of (theta, c) pairs. 
@@ -97,41 +97,45 @@ def draw_lines(img, lines, thresh):
 ### (b) Its distance from the (theta, c) line is less than thresh2, and
 ### (c) The difference between theta and the pixel's gradient orientation is less than thresh3
 def hough_voting(gradmag, gradori, thetas, cs, thresh1, thresh2, thresh3):
-    hough_thing = np.zeros((len(thetas), len(cs)))
-    x_len, y_len = gradmag.shape
-    xs = list(range(x_len))
-    ys = np.arange(y_len)
+    height, width = gradmag.shape
 
-    xs = xs * y_len
-    ys = np.repeat(ys, x_len)
-    xs = np.array(xs)
+    xs, ys = np.meshgrid(range(height), range(width), indexing='ij')
+    print(ys)
 
-    print(len(thetas))
-    print(len(cs))
+    gradmag_flattened = gradmag.ravel()
+    gradori_flattened = gradori.ravel()
 
-    for i in range(len(thetas)):
-        theta = thetas[i]
-        print("i" + str(i))
-        for j in range(len(cs)):
+    votes = np.zeros((len(thetas), len(cs)))
+
+    valid_pixels = gradmag_flattened > thresh1
+    
+    filtered_xs = xs.ravel()[valid_pixels]
+    filtered_ys = ys.ravel()[valid_pixels]
+    filtered_ori = gradori_flattened[valid_pixels]
+
+    for t, theta in enumerate(thetas):
+        for c, c_val in enumerate(cs):
             
-            #print("j" + str(j))
-            c = cs[j]
-            mask1 = gradmag < thresh1
-            pixel_val = check_distance_from_line(xs, ys, theta, c, thresh2)
-            mask2 = np.reshape(pixel_val, (x_len, y_len))
-            diff = np.abs(gradori - theta)
-            mask3 = diff < thresh3
+            d = np.abs(filtered_ys * np.cos(theta) + filtered_xs * np.sin(theta) + c_val)
+            diff = np.abs(filtered_ori - theta)
+            votes[t, c] = np.sum((d < thresh2) & (diff < thresh3))
 
-            hough_thing[i,j] = np.sum(mask1 * mask2 * mask3)
+    return votes
 
-    return hough_thing
     
 
 ### TODO 7: Find local maxima in the array of votes. A (theta, c) pair counts as a local maxima if (a) its votes are greater than thresh, and 
 ### (b) its value is the maximum in a (nbhd x nbhd) neighborhood in the votes array.
 ### Return a list of (theta, c) pairs
 def localmax(votes, thetas, cs, thresh,nbhd):
-    pass
+     height, width = votes.shape
+        max_filter = ndimage.filters.maximum_filter(votes, size=(nbhd,nbhd), mode='nearest')
+        for y in range(height):
+            for x in range(width):
+                destImage[y, x] = True if harrisImage[y, x] == max_filter[y, x] else False
+
+    return local_maxima
+    
 
 
   
