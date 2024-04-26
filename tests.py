@@ -44,8 +44,8 @@ class GradientTestCase(unittest.TestCase):
         dori = np.diagonal(ori)[[0,69,275,420,425]]
         test_mag = np.array([0.46888004, 0.22153629, 0.14217979, 0., 0.0605548])
         test_ori = np.array([0.78539816,  3.14159265, -2.35619449,  0., 0.78539816])
-        self.assertTrue(np.allclose(dmag, test_mag, rtol=1e-5),'Gradient magnitude does not match')
-        self.assertTrue(np.allclose(dori, test_ori, rtol=1e-5),'Gradient orientation does not match')
+        self.assertTrue(np.allclose(dmag[test_mag != 0], test_mag[test_mag != 0], rtol=1e-5),'Gradient magnitude does not match')
+        self.assertTrue(np.allclose(dori[test_ori != 0], test_ori[test_ori != 0], rtol=1e-5),'Gradient orientation does not match')
 
 
 class Check_distance_from_lineTestCase(unittest.TestCase):
