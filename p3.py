@@ -64,16 +64,20 @@ def check_distance_from_line(x, y, theta, c, thresh):
 ### where every pixel which is less than thresh units away from the line should be colored red
 def draw_lines(img, lines, thresh):
     img_copy = np.copy(img)
-    x_len, y_len, _ = img.shape
+    """x_len, y_len, _ = img.shape
     xs = list(range(x_len))
     ys = np.arange(y_len)
 
     xs = xs * y_len
     ys = np.repeat(ys, x_len)
     xs = np.array(xs)
-
-    pixels = zip(xs, ys)
-    pixels = list(pixels)
+    """
+    x_len, y_len = img.shape
+    ys = list(range(y_len))
+    xs = np.arange(x_len)
+    ys = ys * x_len
+    xs = np.repeat(xs, y_len)
+    ys = np.array(ys)
 
     for (theta, c) in lines:
         pixel_val = check_distance_from_line(xs, ys, theta, c, thresh)
