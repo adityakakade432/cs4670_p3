@@ -72,12 +72,12 @@ def draw_lines(img, lines, thresh):
     ys = np.repeat(ys, x_len)
     xs = np.array(xs)
     """
-    x_len, y_len = img.shape
-    ys = list(range(y_len))
-    xs = np.arange(x_len)
-    ys = ys * x_len
-    xs = np.repeat(xs, y_len)
-    ys = np.array(ys)
+    x_len, y_len, _ = img.shape
+    xs = list(range(y_len))
+    ys = np.arange(x_len)
+    xs = xs * x_len
+    ys = np.repeat(ys, y_len)
+    xs = np.array(xs)
 
     for (theta, c) in lines:
         pixel_val = check_distance_from_line(xs, ys, theta, c, thresh)
@@ -139,15 +139,15 @@ def hough_voting(gradmag, gradori, thetas, cs, thresh1, thresh2, thresh3):
 ### Return a list of (theta, c) pairs
 def localmax(votes, thetas, cs, thresh,nbhd):
     theta_len, cs_len = votes.shape
-    print(votes.shape)
-    print(nbhd)
-    print(thresh)
+    #print(votes.shape)
+    #print(nbhd)
+    #print(thresh)
     idx = list(zip(*np.where(votes > 100)))
-    print(len(idx) < 20)
+    #print(len(idx) < 20)
     max_filter = ndimage.maximum_filter(votes, size=(nbhd, nbhd), mode='nearest')
     #max_filter = ndimage.maximum_position(votes, labels=np.ones((nbhd,nbhd)))
 
-    print(len(max_filter > 0))
+    #print(len(max_filter > 0))
     to_return = []
     for theta_index in range(theta_len):
         for c_index in range(cs_len):
@@ -155,7 +155,7 @@ def localmax(votes, thetas, cs, thresh,nbhd):
             if val != max_filter[theta_index, c_index]:
                 continue
             if val > thresh:
-                print(val)
+                #print(val)
                 #print(theta_index, c_index)
                 to_return.append((thetas[theta_index], cs[c_index]))
     """
@@ -164,8 +164,8 @@ def localmax(votes, thetas, cs, thresh,nbhd):
         if val > thresh:
             to_return.append((x, y))
     """
-    print(len(to_return))
-    print(to_return)
+    #print(len(to_return))
+    #print(to_return)
     return to_return
     
 
