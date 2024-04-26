@@ -97,30 +97,36 @@ def draw_lines(img, lines, thresh):
 ### (b) Its distance from the (theta, c) line is less than thresh2, and
 ### (c) The difference between theta and the pixel's gradient orientation is less than thresh3
 def hough_voting(gradmag, gradori, thetas, cs, thresh1, thresh2, thresh3):
-    height, width = gradmag.shape
+    hough_thing = np.zeros((len(thetas), len(cs)))
+    x_len, y_len = gradmag.shape
+    ys = list(range(y_len))
+    xs = np.arange(x_len)
+    ys = ys * x_len
+    xs = np.repeat(xs, y_len)
+    ys = np.array(ys)
 
-    xs, ys = np.meshgrid(range(height), range(width), indexing='ij')
-    print(ys)
+    gradmag_flattened = gradmag.flatten()
+    gradori_flattened = gradori.flatten()
 
-    gradmag_flattened = gradmag.ravel()
-    gradori_flattened = gradori.ravel()
-
-    votes = np.zeros((len(thetas), len(cs)))
-
-    valid_pixels = gradmag_flattened > thresh1
+    mask1 = gradmag_flattened > thresh1
     
-    filtered_xs = xs.ravel()[valid_pixels]
-    filtered_ys = ys.ravel()[valid_pixels]
-    filtered_ori = gradori_flattened[valid_pixels]
+    filtered_xs = xs.flatten()[mask1]
+    filtered_ys = ys.flatten()[mask1]
+    filtered_ori = gradori_flattened[mask1]
 
-    for t, theta in enumerate(thetas):
-        for c, c_val in enumerate(cs):
-            
+    for i in range(len(thetas)):
+        theta = thetas[i]
+        for j in range(len(cs)):
+            c_val = cs[j]
+            # Found check_distance from line to just take too long to run
             d = np.abs(filtered_ys * np.cos(theta) + filtered_xs * np.sin(theta) + c_val)
+            mask2 = d < thresh2
+            #d = check_distance_from_line(filtered_xs, filtered_ys, theta, c_val, thresh2)
             diff = np.abs(filtered_ori - theta)
-            votes[t, c] = np.sum((d < thresh2) & (diff < thresh3))
+            mask3 = diff < thresh3
+            hough_thing[i, j] = np.sum(mask2 * mask3)
 
-    return votes
+    return hough_thing
 
     
 
